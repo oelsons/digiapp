@@ -26,8 +26,8 @@ public class DigimonController {
     private RestTemplate restTemplate;
 
     @GetMapping("/all")
-    public String getAll(){
-        return apiUrl.concat(" /all");
+    public Digimon[] getAll(){
+        return restTemplate.getForObject(apiUrl, Digimon[].class);
     }
 
     @GetMapping("/name/{name}")
@@ -36,25 +36,36 @@ public class DigimonController {
     }
 
     @GetMapping(value = "/namecsv/{name}", produces = "text/csv")
-    public ResponseEntity<StreamingResponseBody> getCsvByName(@PathVariable String name) {
+    public ResponseEntity<StreamingResponseBody> getCsvByName(@PathVariable String name){
         Digimon[] response = restTemplate.getForObject(apiUrl.concat("/name/").concat(name), Digimon[].class);
 
+        return getCSVResponseEntity(name, response);
+    }
+
+    @GetMapping("/level/{level}")
+    public Digimon[] getByLevel(@PathVariable String level){
+        return restTemplate.getForObject(apiUrl.concat("/level/").concat(level), Digimon[].class);
+    }
+
+    @GetMapping(value = "/levelcsv/{level}", produces = "text/csv")
+    public ResponseEntity<StreamingResponseBody> getCsvByLevel(@PathVariable String level){
+        Digimon[] response = restTemplate.getForObject(apiUrl.concat("/level/").concat(level), Digimon[].class);
+
+        return getCSVResponseEntity(level, response);
+    }
+
+    private ResponseEntity<StreamingResponseBody> getCSVResponseEntity(String property, Digimon[] response) {
         StreamingResponseBody stream = output -> {
             Writer writer = new BufferedWriter(new OutputStreamWriter(output));
-            writer.write("Name,IMG,Level"+"\n");
+            writer.write("Name,IMG,Level" + "\n");
             for (Digimon digimon : response) {
                 writer.write(digimon.getName() + "," + digimon.getImg() + "," + digimon.getLevel() + "\n");
                 writer.flush();
             }
         };
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + name + ".csv")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + property + ".csv")
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(stream);
-    }
-
-    @GetMapping("/level/{level}")
-    public String getByLevel(@PathVariable String level){
-        return level;
     }
 }
