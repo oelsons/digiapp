@@ -1,4 +1,4 @@
-package com.oel.testapp.domain;
+package com.oel.digiapp.domain;
 
 import lombok.Data;
 import org.springframework.stereotype.Component;
